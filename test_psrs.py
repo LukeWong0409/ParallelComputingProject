@@ -3,15 +3,13 @@ import time
 import re
 import os
 
-# 测试配置
-DATA_SIZES = [1000, 5000, 10000, 100000, 1000000]  # 1K, 5K, 10K, 100K, 1000K数据量
-NUM_CLIENTS_LIST = [1, 2, 4]  # 测试1、2、4个客户端（线程数）
-PSRS_EXE = ".\\psrs_socket.exe"  # PSRS程序路径
+DATA_SIZES = [1000, 5000, 10000, 100000, 1000000]
+NUM_CLIENTS_LIST = [1, 2, 4]
+PSRS_EXE = ".\\psrs_socket.exe"
 
-# 存储测试结果
-serial_times = {}  # 串行排序时间
-parallel_times = {}  # 并行排序时间
-speedup_ratios = {}  # 加速比
+serial_times = {}
+parallel_times = {}
+speedup_ratios = {}
 
 
 def run_server(num_clients, data_size):
@@ -43,7 +41,6 @@ def extract_sort_time(server_process):
         print(f"服务器运行错误: {error}")
         return None
     
-    # 提取排序时间
     match = re.search(r"总排序时间: ([\d.]+) 秒", output)
     if match:
         return float(match.group(1))
@@ -56,17 +53,13 @@ def run_test(num_clients, data_size):
     """执行单次测试"""
     print(f"测试: 数据量={data_size}, 客户端数={num_clients}")
     
-    # 启动服务器
     server = run_server(num_clients, data_size)
-    time.sleep(1)  # 等待服务器启动
+    time.sleep(1)
     
-    # 启动客户端
     clients = run_clients("127.0.0.1", num_clients)
     
-    # 等待客户端完成
     wait_for_processes(clients)
     
-    # 获取排序时间
     sort_time = extract_sort_time(server)
     
     if sort_time is not None:
@@ -79,7 +72,6 @@ def main():
     print("PSRS并行排序算法 性能自动测试")
     print("=" * 70)
     
-    # 1. 测试串行排序时间（1个客户端）
     print("\n1. 测试串行排序时间 (1个客户端):")
     print("-" * 50)
     for data_size in DATA_SIZES:
@@ -87,10 +79,9 @@ def main():
         if serial_time is not None:
             serial_times[data_size] = serial_time
     
-    # 2. 测试并行排序时间（多个客户端）
     print("\n2. 测试并行排序时间 (多个客户端):")
     print("-" * 50)
-    for num_clients in NUM_CLIENTS_LIST[1:]:  # 跳过1个客户端的情况
+    for num_clients in NUM_CLIENTS_LIST[1:]:
         for data_size in DATA_SIZES:
             parallel_time = run_test(num_clients, data_size)
             if parallel_time is not None:
@@ -98,7 +89,6 @@ def main():
                     parallel_times[data_size] = {}
                 parallel_times[data_size][num_clients] = parallel_time
     
-    # 3. 计算加速比
     print("\n3. 计算加速比:")
     print("-" * 50)
     for data_size in DATA_SIZES:
@@ -113,7 +103,6 @@ def main():
                     speedup_ratios[data_size][num_clients] = speedup
                     print(f"  数据量={data_size}, {num_clients}客户端: 加速比={speedup:.2f}")
     
-    # 4. 生成测试报告
     print("\n" + "=" * 70)
     print("PSRS算法性能测试报告")
     print("=" * 70)
@@ -123,15 +112,12 @@ def main():
     for data_size in DATA_SIZES:
         serial_time = serial_times.get(data_size, "N/A")
         
-        # 2客户端情况
         time_2 = parallel_times.get(data_size, {}).get(2, "N/A")
         speedup_2 = speedup_ratios.get(data_size, {}).get(2, "N/A")
         
-        # 4客户端情况
         time_4 = parallel_times.get(data_size, {}).get(4, "N/A")
         speedup_4 = speedup_ratios.get(data_size, {}).get(4, "N/A")
         
-        # 格式化输出
         serial_str = f"{serial_time:.4f}" if serial_time != "N/A" else "N/A"
         time_2_str = f"{time_2:.4f}" if time_2 != "N/A" else "N/A"
         speedup_2_str = f"{speedup_2:.2f}" if speedup_2 != "N/A" else "N/A"

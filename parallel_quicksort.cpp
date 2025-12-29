@@ -8,7 +8,6 @@
 using namespace std;
 using namespace std::chrono;
 
-// 串行快速排序
 void quicksort_serial(vector<int>& arr, int low, int high) {
     if (low < high) {
         int pivot = arr[high];
@@ -28,7 +27,6 @@ void quicksort_serial(vector<int>& arr, int low, int high) {
     }
 }
 
-// 并行快速排序
 void quicksort_parallel(vector<int>& arr, int low, int high, int depth = 0) {
     if (low < high) {
         int pivot = arr[high];
@@ -43,7 +41,6 @@ void quicksort_parallel(vector<int>& arr, int low, int high, int depth = 0) {
         swap(arr[i + 1], arr[high]);
         int pi = i + 1;
         
-        // 控制递归深度，避免创建过多线程
         if (depth < 4) {
             #pragma omp parallel sections
             {
@@ -54,14 +51,12 @@ void quicksort_parallel(vector<int>& arr, int low, int high, int depth = 0) {
                 quicksort_parallel(arr, pi + 1, high, depth + 1);
             }
         } else {
-            // 当递归深度较深时使用串行排序
             quicksort_serial(arr, low, pi - 1);
             quicksort_serial(arr, pi + 1, high);
         }
     }
 }
 
-// 生成随机数组
 vector<int> generate_random_array(int size) {
     vector<int> arr(size);
     random_device rd;
@@ -75,30 +70,24 @@ vector<int> generate_random_array(int size) {
     return arr;
 }
 
-// 测试排序性能
 void test_performance(int data_size, int num_threads) {
     cout << "测试数据量: " << data_size << "，线程数: " << num_threads << endl;
     
-    // 设置线程数
     omp_set_num_threads(num_threads);
     
-    // 生成随机数组
     vector<int> arr_serial = generate_random_array(data_size);
-    vector<int> arr_parallel = arr_serial; // 复制数组用于并行排序
+    vector<int> arr_parallel = arr_serial;
     
-    // 串行排序计时
-    auto start_serial = high_resolution_clock::now();
+    auto start_serial = steady_clock::now();
     quicksort_serial(arr_serial, 0, arr_serial.size() - 1);
-    auto end_serial = high_resolution_clock::now();
+    auto end_serial = steady_clock::now();
     double time_serial = duration<double>(end_serial - start_serial).count();
     
-    // 并行排序计时
-    auto start_parallel = high_resolution_clock::now();
+    auto start_parallel = steady_clock::now();
     quicksort_parallel(arr_parallel, 0, arr_parallel.size() - 1);
-    auto end_parallel = high_resolution_clock::now();
+    auto end_parallel = steady_clock::now();
     double time_parallel = duration<double>(end_parallel - start_parallel).count();
     
-    // 验证排序结果
     bool correct = is_sorted(arr_serial.begin(), arr_serial.end()) && 
                    is_sorted(arr_parallel.begin(), arr_parallel.end()) &&
                    arr_serial == arr_parallel;
@@ -116,10 +105,8 @@ void test_performance(int data_size, int num_threads) {
 }
 
 int main() {
-    // 测试不同数据量
     vector<int> data_sizes = {1000, 5000, 10000, 100000};
     
-    // 测试不同线程数
     vector<int> thread_counts = {1, 2, 4, 8, 16};
     
     cout << "并行快速排序算法性能测试" << endl;
