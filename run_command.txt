@@ -1,0 +1,5 @@
+g++ -fopenmp parallel_quicksort.cpp -o parallel_quicksort.exe
+
+g++ psrs_socket.cpp -o psrs_socket.exe -lws2_32
+./psrs_socket.exe server <客户端数量> <数据大小>
+./psrs_socket.exe client <服务器IP> <客户端ID> <客户端总数>
